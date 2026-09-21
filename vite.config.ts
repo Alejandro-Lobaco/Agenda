@@ -11,6 +11,12 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['apple-touch-icon.png'],
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
+      injectManifest: {
+        swSrc: 'src/sw.ts',
+      },
       manifest: {
         name: 'Mi Agenda',
         short_name: 'Agenda',

@@ -5,6 +5,7 @@ import { SpaceTabs, type View } from './components/SpaceTabs'
 import { TaskForm } from './components/TaskForm'
 import { TaskItem } from './components/TaskItem'
 import { useAuth } from './hooks/useAuth'
+import { usePushNotifications } from './hooks/usePushNotifications'
 import { useTasks } from './hooks/useTasks'
 import { isSupabaseConfigured } from './lib/supabaseClient'
 import { SPACES, type Space, type Task } from './types'
@@ -15,6 +16,7 @@ function App() {
   const [showForm, setShowForm] = useState(false)
   const [hideDone, setHideDone] = useState(true)
   const { tasks, loading, error, addTask, toggleTask, deleteTask } = useTasks(user)
+  const push = usePushNotifications(user)
 
   const visibleTasks = useMemo(() => {
     let list = tasks.filter((t) => (view === 'comun' ? t.scope === 'comun' : t.scope === 'personal'))
@@ -62,6 +64,16 @@ function App() {
           Salir
         </button>
       </header>
+
+      {push.supported && !push.subscribed && (
+        <div className="mx-4 mb-2 flex items-center justify-between gap-2 rounded-lg bg-violet-50 px-3 py-2 text-xs text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
+          <span>🔔 Activa avisos para las fechas límite</span>
+          <button onClick={push.subscribe} className="shrink-0 rounded-full bg-violet-600 px-2.5 py-1 font-medium text-white">
+            Activar
+          </button>
+        </div>
+      )}
+      {push.error && <p className="mx-4 mb-2 text-xs text-red-500">{push.error}</p>}
 
       <SpaceTabs active={view} onChange={setView} />
 
