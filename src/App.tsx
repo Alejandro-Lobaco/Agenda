@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from 'framer-motion'
 import { useMemo, useState } from 'react'
 import { AuthScreen } from './components/AuthScreen'
 import { SetupNotice } from './components/SetupNotice'
@@ -103,44 +104,51 @@ function App() {
                   {email === user.email ? 'Tú' : email}
                 </h2>
                 <ul className="space-y-2">
-                  {groupTasks.map((task) => (
-                    <TaskItem key={task.id} task={task} showSpace onToggle={toggleTask} onDelete={deleteTask} />
-                  ))}
+                  <AnimatePresence initial={false}>
+                    {groupTasks.map((task) => (
+                      <TaskItem key={task.id} task={task} showSpace onToggle={toggleTask} onDelete={deleteTask} />
+                    ))}
+                  </AnimatePresence>
                 </ul>
               </div>
             ))}
           </div>
         ) : (
           <ul className="space-y-2">
-            {visibleTasks.map((task) => (
-              <TaskItem
-                key={task.id}
-                task={task}
-                showSpace={view === 'hoy'}
-                onToggle={toggleTask}
-                onDelete={deleteTask}
-              />
-            ))}
+            <AnimatePresence initial={false}>
+              {visibleTasks.map((task) => (
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  showSpace={view === 'hoy'}
+                  onToggle={toggleTask}
+                  onDelete={deleteTask}
+                />
+              ))}
+            </AnimatePresence>
           </ul>
         )}
       </main>
 
-      <button
+      <motion.button
         onClick={() => setShowForm(true)}
+        whileTap={{ scale: 0.9 }}
         className="fixed bottom-6 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-violet-600 text-2xl text-white shadow-lg"
         aria-label="Añadir tarea"
       >
         +
-      </button>
+      </motion.button>
 
-      {showForm && (
-        <TaskForm
-          defaultScope={view === 'comun' ? 'comun' : 'personal'}
-          defaultSpace={view === 'hoy' || view === 'comun' ? SPACES[0].id : (view as Space)}
-          onAdd={addTask}
-          onClose={() => setShowForm(false)}
-        />
-      )}
+      <AnimatePresence>
+        {showForm && (
+          <TaskForm
+            defaultScope={view === 'comun' ? 'comun' : 'personal'}
+            defaultSpace={view === 'hoy' || view === 'comun' ? SPACES[0].id : (view as Space)}
+            onAdd={addTask}
+            onClose={() => setShowForm(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

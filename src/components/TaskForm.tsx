@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import { useState } from 'react'
 import { COMUN_SPACES, SPACES, type NewTask, type Priority, type Scope, type Space } from '../types'
 
@@ -33,10 +34,22 @@ export function TaskForm({
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="fixed inset-x-0 bottom-0 z-20 rounded-t-2xl border-t border-neutral-200 bg-white p-4 shadow-lg dark:border-neutral-800 dark:bg-neutral-900"
-    >
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 z-10 bg-black/30"
+      />
+      <motion.form
+        onSubmit={handleSubmit}
+        initial={{ y: '100%' }}
+        animate={{ y: 0 }}
+        exit={{ y: '100%' }}
+        transition={{ type: 'spring', stiffness: 400, damping: 38 }}
+        className="fixed inset-x-0 bottom-0 z-20 rounded-t-2xl border-t border-neutral-200 bg-white p-4 shadow-lg dark:border-neutral-800 dark:bg-neutral-900"
+      >
       <div className="mx-auto max-w-md space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-semibold">Nueva tarea</h2>
@@ -100,6 +113,7 @@ export function TaskForm({
           Añadir
         </button>
       </div>
-    </form>
+      </motion.form>
+    </>
   )
 }
