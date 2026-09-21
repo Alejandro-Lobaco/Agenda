@@ -15,11 +15,13 @@ function formatDate(dateStr: string | null) {
 export function TaskItem({
   task,
   showSpace,
+  showAuthor,
   onToggle,
   onDelete,
 }: {
   task: Task
   showSpace?: boolean
+  showAuthor?: boolean
   onToggle: (id: string, done: boolean) => void
   onDelete: (id: string) => void
 }) {
@@ -44,9 +46,12 @@ export function TaskItem({
           {task.title}
         </p>
         {task.notes && <p className="mt-0.5 text-xs text-neutral-500">{task.notes}</p>}
+        {showAuthor && (
+          <p className="mt-0.5 text-xs text-neutral-400">Añadida por {task.created_by_email}</p>
+        )}
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
           {showSpace && space && (
-            <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+            <span className={`rounded-full px-2 py-0.5 text-xs ${space.accent}`}>
               {space.emoji} {space.label}
             </span>
           )}

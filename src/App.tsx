@@ -1,21 +1,24 @@
 import { useMemo, useState } from 'react'
+import { AuthScreen } from './components/AuthScreen'
 import { SetupNotice } from './components/SetupNotice'
 import { SpaceTabs, type View } from './components/SpaceTabs'
 import { TaskForm } from './components/TaskForm'
 import { TaskItem } from './components/TaskItem'
+import { useAuth } from './hooks/useAuth'
 import { useTasks } from './hooks/useTasks'
 import { isSupabaseConfigured } from './lib/supabaseClient'
-import { SPACES, type Space } from './types'
+import { SPACES, type Space, type Task } from './types'
 
 function App() {
+  const { user, loading: authLoading, signIn, signUp, signOut } = useAuth()
   const [view, setView] = useState<View>('hoy')
   const [showForm, setShowForm] = useState(false)
   const [hideDone, setHideDone] = useState(true)
-  const { tasks, loading, error, addTask, toggleTask, deleteTask } = useTasks()
+  const { tasks, loading, error, addTask, toggleTask, deleteTask } = useTasks(user)
 
   const visibleTasks = useMemo(() => {
-    let list = tasks
-    if (view !== 'hoy') list = list.filter((t) => t.space === view)
+    let list = tasks.filter((t) => (view === 'comun' ? t.scope === 'comun' : t.scope === 'personal'))
+    if (view !== 'hoy' && view !== 'comun') list = list.filter((t) => t.space === view)
     if (hideDone) list = list.filter((t) => !t.done)
 
     if (view === 'hoy') {
@@ -30,13 +33,34 @@ function App() {
     return list
   }, [tasks, view, hideDone])
 
+  const comunGroups = useMemo(() => {
+    if (view !== 'comun') return null
+    const groups = new Map<string, Task[]>()
+    for (const task of visibleTasks) {
+      const key = task.created_by_email
+      groups.set(key, [...(groups.get(key) ?? []), task])
+    }
+    return [...groups.entries()].sort(([a], [b]) => {
+      if (a === user?.email) return -1
+      if (b === user?.email) return 1
+      return a.localeCompare(b)
+    })
+  }, [view, visibleTasks, user?.email])
+
   if (!isSupabaseConfigured) return <SetupNotice />
+  if (authLoading) return null
+  if (!user) return <AuthScreen onSignIn={signIn} onSignUp={signUp} />
 
   return (
     <div className="mx-auto min-h-screen max-w-md bg-neutral-50 pb-24 dark:bg-neutral-950">
-      <header className="px-4 pb-3 pt-6">
-        <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Mi Agenda</h1>
-        <p className="text-sm text-neutral-500">Instituto, empresa y proyectos, todo en un sitio.</p>
+      <header className="flex items-start justify-between px-4 pb-3 pt-6">
+        <div>
+          <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Mi Agenda</h1>
+          <p className="text-sm text-neutral-500">{user.email}</p>
+        </div>
+        <button onClick={signOut} className="mt-1 text-xs text-neutral-400 underline">
+          Salir
+        </button>
       </header>
 
       <SpaceTabs active={view} onChange={setView} />
@@ -59,17 +83,34 @@ function App() {
           <p className="mt-8 text-center text-sm text-neutral-400">Nada por aquí. ¡Buen trabajo! 🎉</p>
         )}
 
-        <ul className="space-y-2">
-          {visibleTasks.map((task) => (
-            <TaskItem
-              key={task.id}
-              task={task}
-              showSpace={view === 'hoy'}
-              onToggle={toggleTask}
-              onDelete={deleteTask}
-            />
-          ))}
-        </ul>
+        {view === 'comun' && comunGroups ? (
+          <div className="space-y-4">
+            {comunGroups.map(([email, groupTasks]) => (
+              <div key={email}>
+                <h2 className="mb-1.5 px-1 text-xs font-semibold uppercase tracking-wide text-neutral-400">
+                  {email === user.email ? 'Tú' : email}
+                </h2>
+                <ul className="space-y-2">
+                  {groupTasks.map((task) => (
+                    <TaskItem key={task.id} task={task} showSpace onToggle={toggleTask} onDelete={deleteTask} />
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {visibleTasks.map((task) => (
+              <TaskItem
+                key={task.id}
+                task={task}
+                showSpace={view === 'hoy'}
+                onToggle={toggleTask}
+                onDelete={deleteTask}
+              />
+            ))}
+          </ul>
+        )}
       </main>
 
       <button
@@ -82,7 +123,8 @@ function App() {
 
       {showForm && (
         <TaskForm
-          defaultSpace={view === 'hoy' ? SPACES[0].id : (view as Space)}
+          defaultScope={view === 'comun' ? 'comun' : 'personal'}
+          defaultSpace={view === 'hoy' || view === 'comun' ? SPACES[0].id : (view as Space)}
           onAdd={addTask}
           onClose={() => setShowForm(false)}
         />

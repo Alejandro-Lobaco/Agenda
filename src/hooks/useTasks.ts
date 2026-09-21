@@ -1,14 +1,15 @@
+import type { User } from '@supabase/supabase-js'
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import type { NewTask, Task } from '../types'
 
-export function useTasks() {
+export function useTasks(user: User | null) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const fetchTasks = useCallback(async () => {
-    if (!supabase) return
+    if (!supabase || !user) return
     setLoading(true)
     const { data, error } = await supabase
       .from('tasks')
@@ -19,9 +20,13 @@ export function useTasks() {
     if (error) setError(error.message)
     else setTasks(data as Task[])
     setLoading(false)
-  }, [])
+  }, [user])
 
   useEffect(() => {
+    if (!user) {
+      setTasks([])
+      return
+    }
     fetchTasks()
 
     if (!supabase) return
@@ -36,20 +41,23 @@ export function useTasks() {
     return () => {
       client.removeChannel(channel)
     }
-  }, [fetchTasks])
+  }, [fetchTasks, user])
 
   const addTask = useCallback(async (task: NewTask) => {
-    if (!supabase) return
+    if (!supabase || !user) return
     const { error } = await supabase.from('tasks').insert({
+      scope: task.scope,
       space: task.space,
       title: task.title,
       notes: task.notes ?? null,
       due_date: task.due_date ?? null,
       priority: task.priority ?? 'media',
+      user_id: user.id,
+      created_by_email: user.email,
     })
     if (error) setError(error.message)
     else fetchTasks()
-  }, [fetchTasks])
+  }, [fetchTasks, user])
 
   const toggleTask = useCallback(async (id: string, done: boolean) => {
     if (!supabase) return

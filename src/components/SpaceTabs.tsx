@@ -1,10 +1,11 @@
 import { SPACES, type Space } from '../types'
 
-type View = Space | 'hoy'
+type View = Space | 'hoy' | 'comun'
 
 const TABS: { id: View; label: string; emoji: string }[] = [
   { id: 'hoy', label: 'Hoy', emoji: '⭐️' },
   ...SPACES,
+  { id: 'comun', label: 'Común', emoji: '👥' },
 ]
 
 export function SpaceTabs({ active, onChange }: { active: View; onChange: (v: View) => void }) {
