@@ -21,12 +21,14 @@ export function TaskItem({
   showAuthor,
   onToggle,
   onDelete,
+  onEdit,
 }: {
   task: Task
   showSpace?: boolean
   showAuthor?: boolean
   onToggle: (id: string, done: boolean) => void
   onDelete: (id: string) => void
+  onEdit: (task: Task) => void
 }) {
   const space = SPACES.find((s) => s.id === task.space)
   const x = useMotionValue(0)
@@ -102,13 +104,22 @@ export function TaskItem({
           </div>
         </div>
 
-        <button
-          onClick={() => onDelete(task.id)}
-          aria-label="Eliminar tarea"
-          className="shrink-0 rounded-full p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-red-500 dark:hover:bg-neutral-800"
-        >
-          ✕
-        </button>
+        <div className="flex shrink-0 flex-col gap-1">
+          <button
+            onClick={() => onEdit(task)}
+            aria-label="Editar tarea"
+            className="rounded-full p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-violet-600 dark:hover:bg-neutral-800"
+          >
+            ✏️
+          </button>
+          <button
+            onClick={() => onDelete(task.id)}
+            aria-label="Eliminar tarea"
+            className="rounded-full p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-red-500 dark:hover:bg-neutral-800"
+          >
+            ✕
+          </button>
+        </div>
       </motion.div>
     </motion.li>
   )

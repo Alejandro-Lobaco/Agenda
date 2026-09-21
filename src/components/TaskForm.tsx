@@ -1,23 +1,31 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
-import { COMUN_SPACES, SPACES, type NewTask, type Priority, type Scope, type Space } from '../types'
+import { COMUN_SPACES, SPACES, type NewTask, type Priority, type Scope, type Space, type Task } from '../types'
 
 export function TaskForm({
   defaultScope,
   defaultSpace,
+  editingTask,
   onAdd,
+  onEdit,
   onClose,
 }: {
   defaultScope: Scope
   defaultSpace: Space
+  editingTask?: Task | null
   onAdd: (task: NewTask) => void
+  onEdit: (id: string, task: NewTask) => void
   onClose: () => void
 }) {
-  const [title, setTitle] = useState('')
-  const [scope, setScope] = useState<Scope>(defaultScope)
-  const [space, setSpace] = useState<Space>(defaultSpace === 'instituto' && defaultScope === 'comun' ? 'empresa' : defaultSpace)
-  const [dueDate, setDueDate] = useState('')
-  const [priority, setPriority] = useState<Priority>('media')
+  const isEditing = Boolean(editingTask)
+  const [title, setTitle] = useState(editingTask?.title ?? '')
+  const [notes, setNotes] = useState(editingTask?.notes ?? '')
+  const [scope, setScope] = useState<Scope>(editingTask?.scope ?? defaultScope)
+  const [space, setSpace] = useState<Space>(
+    editingTask?.space ?? (defaultSpace === 'instituto' && defaultScope === 'comun' ? 'empresa' : defaultSpace),
+  )
+  const [dueDate, setDueDate] = useState(editingTask?.due_date ?? '')
+  const [priority, setPriority] = useState<Priority>(editingTask?.priority ?? 'media')
 
   const availableSpaces = scope === 'comun' ? COMUN_SPACES : SPACES
 
@@ -29,7 +37,16 @@ export function TaskForm({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim()) return
-    onAdd({ title: title.trim(), scope, space, due_date: dueDate || null, priority })
+    const payload: NewTask = {
+      title: title.trim(),
+      notes: notes.trim() || null,
+      scope,
+      space,
+      due_date: dueDate || null,
+      priority,
+    }
+    if (isEditing && editingTask) onEdit(editingTask.id, payload)
+    else onAdd(payload)
     onClose()
   }
 
@@ -52,7 +69,7 @@ export function TaskForm({
       >
       <div className="mx-auto max-w-md space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold">Nueva tarea</h2>
+          <h2 className="text-base font-semibold">{isEditing ? 'Editar tarea' : 'Nueva tarea'}</h2>
           <button type="button" onClick={onClose} className="text-neutral-400">
             ✕
           </button>
@@ -64,6 +81,14 @@ export function TaskForm({
           onChange={(e) => setTitle(e.target.value)}
           placeholder="¿Qué hay que hacer?"
           className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+        />
+
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Notas (opcional)"
+          rows={2}
+          className="w-full resize-none rounded-lg border border-neutral-200 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-800"
         />
 
         <label className="flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-2 text-sm dark:border-neutral-700">
@@ -110,7 +135,7 @@ export function TaskForm({
           type="submit"
           className="w-full rounded-lg bg-violet-600 py-2.5 text-sm font-medium text-white"
         >
-          Añadir
+          {isEditing ? 'Guardar' : 'Añadir'}
         </button>
       </div>
       </motion.form>

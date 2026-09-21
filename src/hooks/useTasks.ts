@@ -59,6 +59,23 @@ export function useTasks(user: User | null) {
     else fetchTasks()
   }, [fetchTasks, user])
 
+  const editTask = useCallback(async (id: string, updates: NewTask) => {
+    if (!supabase) return
+    const { error } = await supabase
+      .from('tasks')
+      .update({
+        scope: updates.scope,
+        space: updates.space,
+        title: updates.title,
+        notes: updates.notes ?? null,
+        due_date: updates.due_date ?? null,
+        priority: updates.priority ?? 'media',
+      })
+      .eq('id', id)
+    if (error) setError(error.message)
+    else fetchTasks()
+  }, [fetchTasks])
+
   const toggleTask = useCallback(async (id: string, done: boolean) => {
     if (!supabase) return
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, done } : t)))
@@ -73,5 +90,5 @@ export function useTasks(user: User | null) {
     if (error) setError(error.message)
   }, [])
 
-  return { tasks, loading, error, addTask, toggleTask, deleteTask }
+  return { tasks, loading, error, addTask, editTask, toggleTask, deleteTask }
 }

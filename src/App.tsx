@@ -15,8 +15,9 @@ function App() {
   const { user, loading: authLoading, signIn, signUp, signOut } = useAuth()
   const [view, setView] = useState<View>('hoy')
   const [showForm, setShowForm] = useState(false)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [hideDone, setHideDone] = useState(true)
-  const { tasks, loading, error, addTask, toggleTask, deleteTask } = useTasks(user)
+  const { tasks, loading, error, addTask, editTask, toggleTask, deleteTask } = useTasks(user)
   const push = usePushNotifications(user)
 
   const visibleTasks = useMemo(() => {
@@ -49,6 +50,16 @@ function App() {
       return a.localeCompare(b)
     })
   }, [view, visibleTasks, user?.email])
+
+  function openEdit(task: Task) {
+    setEditingTask(task)
+    setShowForm(true)
+  }
+
+  function closeForm() {
+    setShowForm(false)
+    setEditingTask(null)
+  }
 
   if (!isSupabaseConfigured) return <SetupNotice />
   if (authLoading) return null
@@ -106,7 +117,14 @@ function App() {
                 <ul className="space-y-2">
                   <AnimatePresence initial={false}>
                     {groupTasks.map((task) => (
-                      <TaskItem key={task.id} task={task} showSpace onToggle={toggleTask} onDelete={deleteTask} />
+                      <TaskItem
+                        key={task.id}
+                        task={task}
+                        showSpace
+                        onToggle={toggleTask}
+                        onDelete={deleteTask}
+                        onEdit={openEdit}
+                      />
                     ))}
                   </AnimatePresence>
                 </ul>
@@ -123,6 +141,7 @@ function App() {
                   showSpace={view === 'hoy'}
                   onToggle={toggleTask}
                   onDelete={deleteTask}
+                  onEdit={openEdit}
                 />
               ))}
             </AnimatePresence>
@@ -144,8 +163,10 @@ function App() {
           <TaskForm
             defaultScope={view === 'comun' ? 'comun' : 'personal'}
             defaultSpace={view === 'hoy' || view === 'comun' ? SPACES[0].id : (view as Space)}
+            editingTask={editingTask}
             onAdd={addTask}
-            onClose={() => setShowForm(false)}
+            onEdit={editTask}
+            onClose={closeForm}
           />
         )}
       </AnimatePresence>
