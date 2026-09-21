@@ -17,6 +17,7 @@ function App() {
   const [showForm, setShowForm] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [hideDone, setHideDone] = useState(true)
+  const [search, setSearch] = useState('')
   const { tasks, loading, error, addTask, editTask, toggleTask, deleteTask } = useTasks(user)
   const push = usePushNotifications(user)
 
@@ -24,6 +25,13 @@ function App() {
     let list = tasks.filter((t) => (view === 'comun' ? t.scope === 'comun' : t.scope === 'personal'))
     if (view !== 'hoy' && view !== 'comun') list = list.filter((t) => t.space === view)
     if (hideDone) list = list.filter((t) => !t.done)
+
+    const query = search.trim().toLowerCase()
+    if (query) {
+      list = list.filter(
+        (t) => t.title.toLowerCase().includes(query) || (t.notes ?? '').toLowerCase().includes(query),
+      )
+    }
 
     if (view === 'hoy') {
       // "Hoy": lo vencido/hoy primero, luego el resto por prioridad
@@ -35,7 +43,7 @@ function App() {
       })
     }
     return list
-  }, [tasks, view, hideDone])
+  }, [tasks, view, hideDone, search])
 
   const comunGroups = useMemo(() => {
     if (view !== 'comun') return null
@@ -88,6 +96,19 @@ function App() {
       {push.error && <p className="mx-4 mb-2 text-xs text-red-500">{push.error}</p>}
 
       <SpaceTabs active={view} onChange={setView} />
+
+      <div className="relative px-4 pb-2">
+        <span className="pointer-events-none absolute left-6 top-1/2 -translate-y-1/2 text-sm text-neutral-400">
+          🔍
+        </span>
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar tareas..."
+          className="w-full rounded-lg border border-neutral-200 py-2 pl-8 pr-3 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+        />
+      </div>
 
       <div className="flex items-center justify-between px-4 py-2">
         <span className="text-xs text-neutral-500">
