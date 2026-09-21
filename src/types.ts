@@ -16,6 +16,15 @@ export interface Task {
   created_by_email: string
 }
 
+export interface Comment {
+  id: string
+  task_id: string
+  user_id: string
+  author_email: string
+  body: string
+  created_at: string
+}
+
 export interface NewTask {
   scope: Scope
   space: Space

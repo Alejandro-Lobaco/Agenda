@@ -2,11 +2,13 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useMemo, useState } from 'react'
 import { AuthScreen } from './components/AuthScreen'
 import { CalendarWeek } from './components/CalendarWeek'
+import { CommentsSheet } from './components/CommentsSheet'
 import { SetupNotice } from './components/SetupNotice'
 import { SpaceTabs, type View } from './components/SpaceTabs'
 import { TaskForm } from './components/TaskForm'
 import { TaskItem } from './components/TaskItem'
 import { useAuth } from './hooks/useAuth'
+import { useComments } from './hooks/useComments'
 import { usePushNotifications } from './hooks/usePushNotifications'
 import { useTasks } from './hooks/useTasks'
 import { isSupabaseConfigured } from './lib/supabaseClient'
@@ -19,8 +21,10 @@ function App() {
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [hideDone, setHideDone] = useState(true)
   const [search, setSearch] = useState('')
+  const [commentsTask, setCommentsTask] = useState<Task | null>(null)
   const { tasks, loading, error, addTask, editTask, toggleTask, deleteTask } = useTasks(user)
   const push = usePushNotifications(user)
+  const { comments, loading: commentsLoading, addComment, deleteComment } = useComments(commentsTask?.id ?? null)
 
   const visibleTasks = useMemo(() => {
     let list = tasks.filter((t) => (view === 'comun' ? t.scope === 'comun' : t.scope === 'personal'))
@@ -129,7 +133,13 @@ function App() {
       {error && <p className="mt-8 text-center text-sm text-red-500">{error}</p>}
 
       {view === 'calendario' ? (
-        <CalendarWeek tasks={tasks} onToggle={toggleTask} onDelete={deleteTask} onEdit={openEdit} />
+        <CalendarWeek
+          tasks={tasks}
+          onToggle={toggleTask}
+          onDelete={deleteTask}
+          onEdit={openEdit}
+          onOpenComments={setCommentsTask}
+        />
       ) : (
       <main className="px-4">
         {!loading && visibleTasks.length === 0 && (
@@ -153,6 +163,7 @@ function App() {
                         onToggle={toggleTask}
                         onDelete={deleteTask}
                         onEdit={openEdit}
+                        onOpenComments={setCommentsTask}
                       />
                     ))}
                   </AnimatePresence>
@@ -197,6 +208,20 @@ function App() {
             onAdd={addTask}
             onEdit={editTask}
             onClose={closeForm}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {commentsTask && (
+          <CommentsSheet
+            task={commentsTask}
+            user={user}
+            comments={comments}
+            loading={commentsLoading}
+            onAdd={addComment}
+            onDelete={deleteComment}
+            onClose={() => setCommentsTask(null)}
           />
         )}
       </AnimatePresence>

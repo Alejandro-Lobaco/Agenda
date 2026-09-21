@@ -30,11 +30,13 @@ export function CalendarWeek({
   onToggle,
   onDelete,
   onEdit,
+  onOpenComments,
 }: {
   tasks: Task[]
   onToggle: (id: string, done: boolean) => void
   onDelete: (id: string) => void
   onEdit: (task: Task) => void
+  onOpenComments?: (task: Task) => void
 }) {
   const [weekOffset, setWeekOffset] = useState(0)
 
@@ -116,6 +118,7 @@ export function CalendarWeek({
                       onToggle={onToggle}
                       onDelete={onDelete}
                       onEdit={onEdit}
+                      onOpenComments={onOpenComments}
                     />
                   ))}
                 </AnimatePresence>

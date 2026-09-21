@@ -22,6 +22,7 @@ export function TaskItem({
   onToggle,
   onDelete,
   onEdit,
+  onOpenComments,
 }: {
   task: Task
   showSpace?: boolean
@@ -29,6 +30,7 @@ export function TaskItem({
   onToggle: (id: string, done: boolean) => void
   onDelete: (id: string) => void
   onEdit: (task: Task) => void
+  onOpenComments?: (task: Task) => void
 }) {
   const space = SPACES.find((s) => s.id === task.space)
   const x = useMotionValue(0)
@@ -105,6 +107,15 @@ export function TaskItem({
         </div>
 
         <div className="flex shrink-0 flex-col gap-1">
+          {onOpenComments && task.scope === 'comun' && (
+            <button
+              onClick={() => onOpenComments(task)}
+              aria-label="Ver comentarios"
+              className="rounded-full p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-violet-600 dark:hover:bg-neutral-800"
+            >
+              💬
+            </button>
+          )}
           <button
             onClick={() => onEdit(task)}
             aria-label="Editar tarea"
