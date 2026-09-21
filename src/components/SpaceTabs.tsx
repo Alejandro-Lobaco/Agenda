@@ -1,9 +1,10 @@
 import { SPACES, type Space } from '../types'
 
-type View = Space | 'hoy' | 'comun'
+type View = Space | 'hoy' | 'comun' | 'calendario'
 
 const TABS: { id: View; label: string; emoji: string }[] = [
   { id: 'hoy', label: 'Hoy', emoji: '⭐️' },
+  { id: 'calendario', label: 'Calendario', emoji: '📅' },
   ...SPACES,
   { id: 'comun', label: 'Común', emoji: '👥' },
 ]

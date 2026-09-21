@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useMemo, useState } from 'react'
 import { AuthScreen } from './components/AuthScreen'
+import { CalendarWeek } from './components/CalendarWeek'
 import { SetupNotice } from './components/SetupNotice'
 import { SpaceTabs, type View } from './components/SpaceTabs'
 import { TaskForm } from './components/TaskForm'
@@ -9,7 +10,7 @@ import { useAuth } from './hooks/useAuth'
 import { usePushNotifications } from './hooks/usePushNotifications'
 import { useTasks } from './hooks/useTasks'
 import { isSupabaseConfigured } from './lib/supabaseClient'
-import { SPACES, type Space, type Task } from './types'
+import { SPACES, type Task } from './types'
 
 function App() {
   const { user, loading: authLoading, signIn, signUp, signOut } = useAuth()
@@ -97,33 +98,40 @@ function App() {
 
       <SpaceTabs active={view} onChange={setView} />
 
-      <div className="relative px-4 pb-2">
-        <span className="pointer-events-none absolute left-6 top-1/2 -translate-y-1/2 text-sm text-neutral-400">
-          🔍
-        </span>
-        <input
-          type="search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar tareas..."
-          className="w-full rounded-lg border border-neutral-200 py-2 pl-8 pr-3 text-sm dark:border-neutral-700 dark:bg-neutral-800"
-        />
-      </div>
+      {view !== 'calendario' && (
+        <>
+          <div className="relative px-4 pb-2">
+            <span className="pointer-events-none absolute left-6 top-1/2 -translate-y-1/2 text-sm text-neutral-400">
+              🔍
+            </span>
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar tareas..."
+              className="w-full rounded-lg border border-neutral-200 py-2 pl-8 pr-3 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+            />
+          </div>
 
-      <div className="flex items-center justify-between px-4 py-2">
-        <span className="text-xs text-neutral-500">
-          {visibleTasks.length} tarea{visibleTasks.length === 1 ? '' : 's'}
-        </span>
-        <label className="flex items-center gap-1.5 text-xs text-neutral-500">
-          <input type="checkbox" checked={hideDone} onChange={(e) => setHideDone(e.target.checked)} />
-          Ocultar hechas
-        </label>
-      </div>
+          <div className="flex items-center justify-between px-4 py-2">
+            <span className="text-xs text-neutral-500">
+              {visibleTasks.length} tarea{visibleTasks.length === 1 ? '' : 's'}
+            </span>
+            <label className="flex items-center gap-1.5 text-xs text-neutral-500">
+              <input type="checkbox" checked={hideDone} onChange={(e) => setHideDone(e.target.checked)} />
+              Ocultar hechas
+            </label>
+          </div>
+        </>
+      )}
 
+      {loading && <p className="mt-8 text-center text-sm text-neutral-400">Cargando…</p>}
+      {error && <p className="mt-8 text-center text-sm text-red-500">{error}</p>}
+
+      {view === 'calendario' ? (
+        <CalendarWeek tasks={tasks} onToggle={toggleTask} onDelete={deleteTask} onEdit={openEdit} />
+      ) : (
       <main className="px-4">
-        {loading && <p className="mt-8 text-center text-sm text-neutral-400">Cargando…</p>}
-        {error && <p className="mt-8 text-center text-sm text-red-500">{error}</p>}
-
         {!loading && visibleTasks.length === 0 && (
           <p className="mt-8 text-center text-sm text-neutral-400">Nada por aquí. ¡Buen trabajo! 🎉</p>
         )}
@@ -169,6 +177,7 @@ function App() {
           </ul>
         )}
       </main>
+      )}
 
       <motion.button
         onClick={() => setShowForm(true)}
@@ -183,7 +192,7 @@ function App() {
         {showForm && (
           <TaskForm
             defaultScope={view === 'comun' ? 'comun' : 'personal'}
-            defaultSpace={view === 'hoy' || view === 'comun' ? SPACES[0].id : (view as Space)}
+            defaultSpace={view === 'instituto' || view === 'empresa' || view === 'proyectos' ? view : SPACES[0].id}
             editingTask={editingTask}
             onAdd={addTask}
             onEdit={editTask}
