@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import type { Comment, Task } from '../types'
 
@@ -27,6 +27,8 @@ export function CommentsSheet({
   onClose: () => void
 }) {
   const [body, setBody] = useState('')
+  const bodyInputRef = useRef<HTMLInputElement>(null)
+  const hasFocused = useRef(false)
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -49,6 +51,11 @@ export function CommentsSheet({
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', stiffness: 400, damping: 38 }}
+        onAnimationComplete={() => {
+          if (hasFocused.current) return
+          hasFocused.current = true
+          bodyInputRef.current?.focus()
+        }}
         className="fixed inset-x-0 bottom-0 z-20 flex max-h-[80vh] flex-col rounded-t-2xl border-t border-neutral-200 bg-white shadow-lg dark:border-neutral-800 dark:bg-neutral-900"
       >
         <div className="mx-auto flex w-full max-w-md items-center justify-between border-b border-neutral-100 p-4 dark:border-neutral-800">
@@ -97,7 +104,7 @@ export function CommentsSheet({
           className="mx-auto flex w-full max-w-md items-center gap-2 border-t border-neutral-100 p-3 dark:border-neutral-800"
         >
           <input
-            autoFocus
+            ref={bodyInputRef}
             value={body}
             onChange={(e) => setBody(e.target.value)}
             placeholder="Escribe un comentario..."

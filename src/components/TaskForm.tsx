@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { COMUN_SPACES, SPACES, type NewTask, type Priority, type Scope, type Space, type Task } from '../types'
 
 export function TaskForm({
@@ -26,6 +26,8 @@ export function TaskForm({
   )
   const [dueDate, setDueDate] = useState(editingTask?.due_date ?? '')
   const [priority, setPriority] = useState<Priority>(editingTask?.priority ?? 'media')
+  const titleInputRef = useRef<HTMLInputElement>(null)
+  const hasFocused = useRef(false)
 
   const availableSpaces = scope === 'comun' ? COMUN_SPACES : SPACES
 
@@ -65,6 +67,11 @@ export function TaskForm({
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', stiffness: 400, damping: 38 }}
+        onAnimationComplete={() => {
+          if (hasFocused.current) return
+          hasFocused.current = true
+          titleInputRef.current?.focus()
+        }}
         className="fixed inset-x-0 bottom-0 z-20 rounded-t-2xl border-t border-neutral-200 bg-white p-4 shadow-lg dark:border-neutral-800 dark:bg-neutral-900"
       >
       <div className="mx-auto max-w-md space-y-3">
@@ -76,7 +83,7 @@ export function TaskForm({
         </div>
 
         <input
-          autoFocus
+          ref={titleInputRef}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="¿Qué hay que hacer?"
